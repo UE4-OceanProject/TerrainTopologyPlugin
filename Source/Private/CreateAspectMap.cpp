@@ -1,6 +1,11 @@
 ﻿#include "CreateAspectMap.h"
 #include "TMath.h"
 
+ACreateAspectMap::ACreateAspectMap(const class FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	m_coloredGradient = true;
+}
 
 bool ACreateAspectMap::OnChange()
 {
@@ -17,7 +22,6 @@ void ACreateAspectMap::CreateMap()
 
 	// Create base mip.
 	uint8* DestPtr = NULL;
-	//const FLinearColor* SrcPtr = NULL;
 
 	for (int y = 0; y < m_height; y++)
 	{

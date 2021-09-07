@@ -4,10 +4,13 @@
 #include "LandscapeInfoMap.h"
 #include "TerrainTopologyPlugin.h"
 
+ATerrainTopologyManager::ATerrainTopologyManager(const class FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+}
 
 void ATerrainTopologyManager::OnConstruction(const FTransform& Transform)
 {
-
 }
 
 void ATerrainTopologyManager::BeginPlay()
@@ -27,16 +30,7 @@ void ATerrainTopologyManager::Tick(float DeltaTime)
 void ATerrainTopologyManager::Start()
 {
 	if (Landscape) {
-		//if (m_material == nullptr)
-//{
-//	return;
-//}
-
 		m_heights = Load16Bit();
-
-
-
-
 
 		//Create color gradients to help visualize the maps.
 		m_currentColorMode = m_coloredGradient;
@@ -47,10 +41,8 @@ void ATerrainTopologyManager::Start()
 		{
 			SmoothHeightMap();
 		}
-
 		CreateMap();
 	}
-
 }
 
 void ATerrainTopologyManager::Update()
@@ -59,7 +51,7 @@ void ATerrainTopologyManager::Update()
 	if (OnChange())
 	{
 		CreateGradients(m_coloredGradient);
-		CreateMap();
+		Start();
 
 		m_currentColorMode = m_coloredGradient;
 	}
@@ -67,7 +59,19 @@ void ATerrainTopologyManager::Update()
 
 bool ATerrainTopologyManager::OnChange()
 {
-	return false;
+	return true;
+}
+
+void ATerrainTopologyManager::PostEditChangeProperty(struct FPropertyChangedEvent& e)
+{
+	//FName PropertyName = (e.Property != NULL) ? e.Property->GetFName() : NAME_None;
+	//if (PropertyName == GET_MEMBER_NAME_CHECKED(UCustomClass, PropertyName))
+	{
+	}
+	if (OnChange()) {
+		Update();
+	}
+	Super::PostEditChangeProperty(e);
 }
 
 void ATerrainTopologyManager::CreateMap()
@@ -82,67 +86,15 @@ bool ATerrainTopologyManager::DoSmoothHeights()
 
 TArray<float> ATerrainTopologyManager::Load16Bit(bool bigendian)
 {
-
-
-
-	//auto tex = Landscape->LandscapeComponents[0]->GetHeightmap();
 	LandscapeInfo = CreateLandscapeInfo(false);
 
 	TArray<uint16> heightmap = HeightmapFromLandscape();
-
-
-
-
-
-
-
 
 	m_width = Resolution_W_H.Width;
 	m_height = Resolution_W_H.Height;
 	m_size = m_width * m_height;
 
-
-	m_terrainWidth = m_width*100;
-	m_terrainHeight = 512*100;
-	m_terrainLength = m_height*100;
-
-	//That makes each pixel in height map about x meters in length.
-	m_cellLength = 100;
-	//FLinearColor* MipData = static_cast<FLinearColor*>(tex->PlatformData->Mips[0].BulkData.Lock(EBulkDataLockFlags::LOCK_READ_ONLY));
-	//int32 SrcHeight = tex->GetSizeX();
-	//int32 SrcWidth = tex->GetSizeY();
-
 	m_heights.SetNum(m_size);
-	//TArray<uint16> test;
-	//test.SetNum(SrcHeight * SrcWidth);
-	// Create base mip.
-	//FLinearColor* SrcPtr = NULL;
-
-	//const FLinearColor* RawPixels = static_cast<FLinearColor*>(tex->PlatformData->Mips[0].BulkData.Lock(EBulkDataLockFlags::LOCK_READ_ONLY));
-	//TArray<FLinearColor> Pixels(RawPixels, m_size * 4);
-	//tex->PlatformData->Mips[0].BulkData.Unlock();
-
-
-
-
-	//for (int32 y = 0; y < SrcHeight; y++)
-	//{
-	//	for (int32 x = 0; x < SrcWidth; x++)
-	//	{
-	//		SrcPtr = &MipData[y * SrcHeight + x];
-	//		//m_heights[y* SrcHeight +x] = (SrcPtr->R << 8) | SrcPtr->G;
-	//		test[y * SrcHeight + x] = (SrcPtr->R << 8) | SrcPtr->G;
-	//		//*SrcPtr++ = DestPtr->B;
-	//		//*SrcPtr++ = DestPtr->G;
-	//		//*SrcPtr++ = DestPtr->R;
-	//		//*SrcPtr++ = DestPtr->A;
-	//		*SrcPtr++;
-	//	}
-	//}
-	
-	//Landscape->LandscapeComponents[0]->GetHeightmap()->PlatformData->Mips[0].BulkData.Unlock();
-	//Landscape->LandscapeComponents[0]->GetHeightmap()->UpdateResource();
-	//Landscape->GetHeightValues(SizeX, SizeY, m_heights);
 
 	int size = heightmap.Num();// / 2;
 	TArray<float>data;
@@ -197,7 +149,7 @@ void ATerrainTopologyManager::SetTextureFromArray(UTexture2D* tex, TArray<FLinea
 		}
 	}
 
-	
+
 	tex->PlatformData->Mips[0].BulkData.Unlock();
 	tex->UpdateResource();
 
@@ -298,16 +250,18 @@ FLinearColor ATerrainTopologyManager::GetPixel(TArray<FLinearColor> tex, int x, 
 
 FLinearColor ATerrainTopologyManager::GetPixelBilinear(TArray<FColor> data, double x, double y, int Width, int Height)
 {
-	auto max = data.Num();
 	int xMin, xMax, yMin, yMax;
 	double xfloat, yfloat;
 	FLinearColor c, h1, h2;
 
-	xfloat = (Width - 1) * x;
-	yfloat = (Height - 1) * y;
+	auto xfloatx = (Width - 1) * x;
+	auto yfloaty = (Height - 1) * y;
 
-	xMin = FMath::Clamp(FMath::FloorToInt(xfloat), 0, max - 1);
-	xMax = FMath::Clamp(FMath::CeilToInt(xfloat), 0, max - 1);
+	xfloat = FMath::Clamp(xfloatx, 0.0, Width - 1 * 1.0);
+	yfloat = FMath::Clamp(yfloaty, 0.0, Height - 1 * 1.0);
+
+	xMin = FMath::FloorToInt(xfloat);
+	xMax = FMath::CeilToInt(xfloat);
 
 	yMin = (int)FMath::FloorToInt(yfloat);
 	yMax = FMath::CeilToInt(yfloat);
@@ -315,7 +269,7 @@ FLinearColor ATerrainTopologyManager::GetPixelBilinear(TArray<FColor> data, doub
 	h1 = FLinearColor::LerpUsingHSV(data[xMin + yMin * Width], data[xMax + yMin * Width], (float)FractionalPart(xfloat));
 	h2 = FLinearColor::LerpUsingHSV(data[xMin + yMax * Width], data[xMax + yMax * Width], (float)FractionalPart(xfloat));
 	c = FLinearColor::LerpUsingHSV(h1, h2, (float)FractionalPart(yfloat));
-	
+
 	return c;
 }
 
@@ -439,7 +393,7 @@ UTexture2D* ATerrainTopologyManager::TextureFromRAW(const int32 SrcWidth, const 
 	}
 
 
-	
+
 	gradientTex->PlatformData->Mips[0].BulkData.Unlock();
 	gradientTex->UpdateResource();
 
@@ -458,6 +412,7 @@ TArray<uint16> ATerrainTopologyManager::HeightmapFromLandscape() //ExportHeightm
 		TArray<uint16>dead;
 		return dead;
 	}
+
 	TArray<uint16> HeightData;
 	HeightData.AddZeroed((MaxX - MinX + 1) * (MaxY - MinY + 1));
 	GetHeightDataFast(MinX, MinY, MaxX, MaxY, HeightData.GetData(), 0);
@@ -477,17 +432,17 @@ bool ATerrainTopologyManager::GetLandscapeExtent(int32& MinX, int32& MinY, int32
 	MaxX = MIN_int32;
 	MaxY = MIN_int32;
 
-	//// Find range of entire landscape
-	//for (auto& XYComponentPair : XYtoComponentMap)
-	//{
-	//	const ULandscapeComponent* Comp = XYComponentPair.Value;
-	//	Comp->GetComponentExtent(MinX, MinY, MaxX, MaxY);
-	//}
-		// Find range of entire landscape
+	// Find range of entire landscape
 	for (auto& Comp : Landscape->LandscapeComponents)
 	{
 		//const ULandscapeComponent* Comp = XYComponentPair.Value;
-		Comp->GetComponentExtent(MinX, MinY, MaxX, MaxY);
+
+
+		MinX = FMath::Min(Comp->SectionBaseX, MinX);
+		MinY = FMath::Min(Comp->SectionBaseY, MinY);
+		MaxX = FMath::Max(Comp->SectionBaseX + Comp->ComponentSizeQuads - 1, MaxX);
+		MaxY = FMath::Max(Comp->SectionBaseY + Comp->ComponentSizeQuads - 1, MaxY);
+
 	}
 
 	return (MinX != MAX_int32);
@@ -512,18 +467,6 @@ void ATerrainTopologyManager::GetHeightDataFast(const int32 X1, const int32 Y1, 
 	}
 }
 
-//FMipInfo* ATerrainTopologyManager::GetTextureDataInfo(UTexture2D* Texture)
-//{
-//	//we actually only want mipinfo
-//	FMipInfo* Result;// = TextureDataMap.FindRef(Texture);
-//	if (!Result)
-//	{
-//		//Result = TextureDataMap.Add(Texture, new FLandscapeTextureDataInfo(Texture, GetShouldDirtyPackage()));
-//		
-//	}
-//	return Result;
-//}
-
 void* GetMipData(UTexture2D* Heightmap, int32 MipNum)
 {
 
@@ -543,7 +486,7 @@ void UnlockMipData(UTexture2D* Heightmap, int32 MipNum)
 
 	//if (Heightmap->PlatformData->Mips[MipNum].BulkData.IsLocked())
 	//{
-		Heightmap->Source.UnlockMip(MipNum);
+	Heightmap->Source.UnlockMip(MipNum);
 	//}
 }
 
@@ -576,18 +519,17 @@ TMap<FIntPoint, ULandscapeComponent*> ATerrainTopologyManager::GenerateXYtoCompn
 template<typename TStoreData>
 void ATerrainTopologyManager::GetHeightDataTemplFast(const int32 X1, const int32 Y1, const int32 X2, const int32 Y2, TStoreData& StoreData, UTexture2D* InHeightmap, TStoreData* NormalData /*= NULL*/)
 {
-
-
-	//if (!LandscapeInfo) return;
+	if (!LandscapeInfo) return;
+	auto ComponentSizeQuads = Landscape->ComponentSizeQuads;
+	auto SubsectionSizeQuads = Landscape->SubsectionSizeQuads;
 	int32 ComponentIndexX1, ComponentIndexY1, ComponentIndexX2, ComponentIndexY2;
-	ALandscape::CalcComponentIndicesNoOverlap(X1, Y1, X2, Y2, Landscape->ComponentSizeQuads, ComponentIndexX1, ComponentIndexY1, ComponentIndexX2, ComponentIndexY2);
+	ALandscape::CalcComponentIndicesNoOverlap(X1, Y1, X2, Y2, ComponentSizeQuads, ComponentIndexX1, ComponentIndexY1, ComponentIndexX2, ComponentIndexY2);
 
 	auto XYtoComponentMap = GenerateXYtoCompnentMap();
 	for (int32 ComponentIndexY = ComponentIndexY1; ComponentIndexY <= ComponentIndexY2; ComponentIndexY++)
 	{
 		for (int32 ComponentIndexX = ComponentIndexX1; ComponentIndexX <= ComponentIndexX2; ComponentIndexX++)
 		{
-			//Landscape->GenerateComponentsPerHeightmaps
 			ULandscapeComponent* Component = XYtoComponentMap.FindRef(FIntPoint(ComponentIndexX, ComponentIndexY));
 
 			if (Component == nullptr)
@@ -595,52 +537,43 @@ void ATerrainTopologyManager::GetHeightDataTemplFast(const int32 X1, const int32
 				continue;
 			}
 
-			//UTexture2D* Heightmap = InHeightmap != nullptr ? InHeightmap : Component->GetHeightmap(true);
-
-			//FLandscapeTextureDataInfo* TexDataInfo = NULL;
-			////FLinearColor* HeightmapTextureData = NULL;
-			////TexDataInfo = GetTextureDataInfo(Heightmap);
-			////HeightmapTextureData = (FLinearColor*)TexDataInfo->GetMipData(Heightmap, 0);
-			////FLinearColor* HeightmapTextureData = (Heightmap->PlatformData->Mips[0].BulkData.Lock(EBulkDataLockFlags::LOCK_READ_ONLY));
-			//const FLinearColor* HeightmapTextureData = static_cast<FLinearColor*>(Heightmap->PlatformData->Mips[0].BulkData.Lock(EBulkDataLockFlags::LOCK_READ_ONLY));
-
 			UTexture2D* Heightmap = InHeightmap != nullptr ? InHeightmap : Component->GetHeightmap(true);
 
-			FMipInfo* TexDataInfo = NULL;
-			FLinearColor* HeightmapTextureData = NULL;
+			//FMipInfo* TexDataInfo = NULL;
+			FColor* HeightmapTextureData = NULL;
 			//			TexDataInfo = GetTextureDataInfo(Heightmap);
 						//HeightmapTextureData = (FLinearColor*)TexDataInfo->GetMipData(0);
-			HeightmapTextureData = (FLinearColor*)GetMipData(Heightmap, 0);
+			HeightmapTextureData = (FColor*)GetMipData(Heightmap, 0);
 
 			// Find coordinates of box that lies inside component
-			int32 ComponentX1 = FMath::Clamp<int32>(X1 - ComponentIndexX * Landscape->ComponentSizeQuads, 0, Landscape->ComponentSizeQuads);
-			int32 ComponentY1 = FMath::Clamp<int32>(Y1 - ComponentIndexY * Landscape->ComponentSizeQuads, 0, Landscape->ComponentSizeQuads);
-			int32 ComponentX2 = FMath::Clamp<int32>(X2 - ComponentIndexX * Landscape->ComponentSizeQuads, 0, Landscape->ComponentSizeQuads);
-			int32 ComponentY2 = FMath::Clamp<int32>(Y2 - ComponentIndexY * Landscape->ComponentSizeQuads, 0, Landscape->ComponentSizeQuads);
+			int32 ComponentX1 = FMath::Clamp<int32>(X1 - ComponentIndexX * ComponentSizeQuads, 0, ComponentSizeQuads);
+			int32 ComponentY1 = FMath::Clamp<int32>(Y1 - ComponentIndexY * ComponentSizeQuads, 0, ComponentSizeQuads);
+			int32 ComponentX2 = FMath::Clamp<int32>(X2 - ComponentIndexX * ComponentSizeQuads, 0, ComponentSizeQuads);
+			int32 ComponentY2 = FMath::Clamp<int32>(Y2 - ComponentIndexY * ComponentSizeQuads, 0, ComponentSizeQuads);
 
 			// Find subsection range for this box
-			int32 SubIndexX1 = FMath::Clamp<int32>((ComponentX1 - 1) / Landscape->SubsectionSizeQuads, 0, Landscape->NumSubsections/*ComponentNumSubsections*/ - 1);	// -1 because we need to pick up vertices shared between subsections
-			int32 SubIndexY1 = FMath::Clamp<int32>((ComponentY1 - 1) / Landscape->SubsectionSizeQuads, 0, Landscape->NumSubsections/*ComponentNumSubsections*/ - 1);
-			int32 SubIndexX2 = FMath::Clamp<int32>(ComponentX2 / Landscape->SubsectionSizeQuads, 0, Landscape->NumSubsections/*ComponentNumSubsections*/ - 1);
-			int32 SubIndexY2 = FMath::Clamp<int32>(ComponentY2 / Landscape->SubsectionSizeQuads, 0, Landscape->NumSubsections/*ComponentNumSubsections*/ - 1);
+			int32 SubIndexX1 = FMath::Clamp<int32>((ComponentX1 - 1) / SubsectionSizeQuads, 0, Landscape->NumSubsections/*ComponentNumSubsections*/ - 1);	// -1 because we need to pick up vertices shared between subsections
+			int32 SubIndexY1 = FMath::Clamp<int32>((ComponentY1 - 1) / SubsectionSizeQuads, 0, Landscape->NumSubsections/*ComponentNumSubsections*/ - 1);
+			int32 SubIndexX2 = FMath::Clamp<int32>(ComponentX2 / SubsectionSizeQuads, 0, Landscape->NumSubsections/*ComponentNumSubsections*/ - 1);
+			int32 SubIndexY2 = FMath::Clamp<int32>(ComponentY2 / SubsectionSizeQuads, 0, Landscape->NumSubsections/*ComponentNumSubsections*/ - 1);
 
 			for (int32 SubIndexY = SubIndexY1; SubIndexY <= SubIndexY2; SubIndexY++)
 			{
 				for (int32 SubIndexX = SubIndexX1; SubIndexX <= SubIndexX2; SubIndexX++)
 				{
 					// Find coordinates of box that lies inside subsection
-					int32 SubX1 = FMath::Clamp<int32>(ComponentX1 - Landscape->SubsectionSizeQuads * SubIndexX, 0, Landscape->SubsectionSizeQuads);
-					int32 SubY1 = FMath::Clamp<int32>(ComponentY1 - Landscape->SubsectionSizeQuads * SubIndexY, 0, Landscape->SubsectionSizeQuads);
-					int32 SubX2 = FMath::Clamp<int32>(ComponentX2 - Landscape->SubsectionSizeQuads * SubIndexX, 0, Landscape->SubsectionSizeQuads);
-					int32 SubY2 = FMath::Clamp<int32>(ComponentY2 - Landscape->SubsectionSizeQuads * SubIndexY, 0, Landscape->SubsectionSizeQuads);
+					int32 SubX1 = FMath::Clamp<int32>(ComponentX1 - SubsectionSizeQuads * SubIndexX, 0, SubsectionSizeQuads);
+					int32 SubY1 = FMath::Clamp<int32>(ComponentY1 - SubsectionSizeQuads * SubIndexY, 0, SubsectionSizeQuads);
+					int32 SubX2 = FMath::Clamp<int32>(ComponentX2 - SubsectionSizeQuads * SubIndexX, 0, SubsectionSizeQuads);
+					int32 SubY2 = FMath::Clamp<int32>(ComponentY2 - SubsectionSizeQuads * SubIndexY, 0, SubsectionSizeQuads);
 
 					// Update texture data for the box that lies inside subsection
 					for (int32 SubY = SubY1; SubY <= SubY2; SubY++)
 					{
 						for (int32 SubX = SubX1; SubX <= SubX2; SubX++)
 						{
-							int32 LandscapeX = SubIndexX * Landscape->SubsectionSizeQuads + ComponentIndexX * Landscape->ComponentSizeQuads + SubX;
-							int32 LandscapeY = SubIndexY * Landscape->SubsectionSizeQuads + ComponentIndexY * Landscape->ComponentSizeQuads + SubY;
+							int32 LandscapeX = SubIndexX * SubsectionSizeQuads + ComponentIndexX * ComponentSizeQuads + SubX;
+							int32 LandscapeY = SubIndexY * SubsectionSizeQuads + ComponentIndexY * ComponentSizeQuads + SubY;
 
 							// Find the texture data corresponding to this vertex
 							int32 SizeU = Heightmap->Source.GetSizeX();
@@ -648,9 +581,9 @@ void ATerrainTopologyManager::GetHeightDataTemplFast(const int32 X1, const int32
 							int32 HeightmapOffsetX = Component->HeightmapScaleBias.Z * (float)SizeU;
 							int32 HeightmapOffsetY = Component->HeightmapScaleBias.W * (float)SizeV;
 
-							int32 TexX = HeightmapOffsetX + (Landscape->SubsectionSizeQuads + 1) * SubIndexX + SubX;
-							int32 TexY = HeightmapOffsetY + (Landscape->SubsectionSizeQuads + 1) * SubIndexY + SubY;
-							FLinearColor& TexData = HeightmapTextureData[TexX + TexY * SizeU];
+							int32 TexX = HeightmapOffsetX + (SubsectionSizeQuads + 1) * SubIndexX + SubX;
+							int32 TexY = HeightmapOffsetY + (SubsectionSizeQuads + 1) * SubIndexY + SubY;
+							FColor& TexData = HeightmapTextureData[TexX + TexY * SizeU];
 
 							uint16 Height = (((uint16)TexData.R) << 8) | TexData.G;
 							StoreData.Store(LandscapeX, LandscapeY, Height);
@@ -672,8 +605,11 @@ template<typename TStoreData>
 void ATerrainTopologyManager::GetHeightDataTemplFast2(const int32 X1, const int32 Y1, const int32 X2, const int32 Y2, TStoreData& StoreData, UTexture2D* InHeightmap, TStoreData* NormalData /*= NULL*/)
 {
 	if (!LandscapeInfo) return;
+	auto ComponentSizeQuads = Landscape->ComponentSizeQuads;
+	auto SubsectionSizeQuads = Landscape->SubsectionSizeQuads;
+	auto ComponentNumSubsections = LandscapeInfo->ComponentNumSubsections;
 	int32 ComponentIndexX1, ComponentIndexY1, ComponentIndexX2, ComponentIndexY2;
-	ALandscape::CalcComponentIndicesNoOverlap(X1, Y1, X2, Y2, LandscapeInfo->ComponentSizeQuads, ComponentIndexX1, ComponentIndexY1, ComponentIndexX2, ComponentIndexY2);
+	ALandscape::CalcComponentIndicesNoOverlap(X1, Y1, X2, Y2, ComponentSizeQuads, ComponentIndexX1, ComponentIndexY1, ComponentIndexX2, ComponentIndexY2);
 
 	for (int32 ComponentIndexY = ComponentIndexY1; ComponentIndexY <= ComponentIndexY2; ComponentIndexY++)
 	{
@@ -688,44 +624,41 @@ void ATerrainTopologyManager::GetHeightDataTemplFast2(const int32 X1, const int3
 
 			UTexture2D* Heightmap = InHeightmap != nullptr ? InHeightmap : Component->GetHeightmap(true);
 
-			//FLandscapeTextureDataInfo* TexDataInfo = NULL;
-			//FLinearColor* HeightmapTextureData = NULL;
-			//TexDataInfo = GetTextureDataInfo(Heightmap);
-			//HeightmapTextureData = (FLinearColor*)TexDataInfo->GetMipData(0);
-
-			FMipInfo* TexDataInfo = NULL;
+			FLandscapeTextureDataInfo* TexDataInfo = NULL;
 			FColor* HeightmapTextureData = NULL;
+			//TexDataInfo = GetTextureDataInfo(Heightmap);
+			//HeightmapTextureData = (FColor*)TexDataInfo->GetMipData(0);
 			HeightmapTextureData = (FColor*)GetMipData(Heightmap, 0);
 
 			// Find coordinates of box that lies inside component
-			int32 ComponentX1 = FMath::Clamp<int32>(X1 - ComponentIndexX * LandscapeInfo->ComponentSizeQuads, 0, LandscapeInfo->ComponentSizeQuads);
-			int32 ComponentY1 = FMath::Clamp<int32>(Y1 - ComponentIndexY * LandscapeInfo->ComponentSizeQuads, 0, LandscapeInfo->ComponentSizeQuads);
-			int32 ComponentX2 = FMath::Clamp<int32>(X2 - ComponentIndexX * LandscapeInfo->ComponentSizeQuads, 0, LandscapeInfo->ComponentSizeQuads);
-			int32 ComponentY2 = FMath::Clamp<int32>(Y2 - ComponentIndexY * LandscapeInfo->ComponentSizeQuads, 0, LandscapeInfo->ComponentSizeQuads);
+			int32 ComponentX1 = FMath::Clamp<int32>(X1 - ComponentIndexX * ComponentSizeQuads, 0, ComponentSizeQuads);
+			int32 ComponentY1 = FMath::Clamp<int32>(Y1 - ComponentIndexY * ComponentSizeQuads, 0, ComponentSizeQuads);
+			int32 ComponentX2 = FMath::Clamp<int32>(X2 - ComponentIndexX * ComponentSizeQuads, 0, ComponentSizeQuads);
+			int32 ComponentY2 = FMath::Clamp<int32>(Y2 - ComponentIndexY * ComponentSizeQuads, 0, ComponentSizeQuads);
 
 			// Find subsection range for this box
-			int32 SubIndexX1 = FMath::Clamp<int32>((ComponentX1 - 1) / LandscapeInfo->SubsectionSizeQuads, 0, LandscapeInfo->ComponentNumSubsections - 1);	// -1 because we need to pick up vertices shared between subsections
-			int32 SubIndexY1 = FMath::Clamp<int32>((ComponentY1 - 1) / LandscapeInfo->SubsectionSizeQuads, 0, LandscapeInfo->ComponentNumSubsections - 1);
-			int32 SubIndexX2 = FMath::Clamp<int32>(ComponentX2 / LandscapeInfo->SubsectionSizeQuads, 0, LandscapeInfo->ComponentNumSubsections - 1);
-			int32 SubIndexY2 = FMath::Clamp<int32>(ComponentY2 / LandscapeInfo->SubsectionSizeQuads, 0, LandscapeInfo->ComponentNumSubsections - 1);
+			int32 SubIndexX1 = FMath::Clamp<int32>((ComponentX1 - 1) / SubsectionSizeQuads, 0, ComponentNumSubsections - 1);	// -1 because we need to pick up vertices shared between subsections
+			int32 SubIndexY1 = FMath::Clamp<int32>((ComponentY1 - 1) / SubsectionSizeQuads, 0, ComponentNumSubsections - 1);
+			int32 SubIndexX2 = FMath::Clamp<int32>(ComponentX2 / SubsectionSizeQuads, 0, ComponentNumSubsections - 1);
+			int32 SubIndexY2 = FMath::Clamp<int32>(ComponentY2 / SubsectionSizeQuads, 0, ComponentNumSubsections - 1);
 
 			for (int32 SubIndexY = SubIndexY1; SubIndexY <= SubIndexY2; SubIndexY++)
 			{
 				for (int32 SubIndexX = SubIndexX1; SubIndexX <= SubIndexX2; SubIndexX++)
 				{
 					// Find coordinates of box that lies inside subsection
-					int32 SubX1 = FMath::Clamp<int32>(ComponentX1 - LandscapeInfo->SubsectionSizeQuads * SubIndexX, 0, LandscapeInfo->SubsectionSizeQuads);
-					int32 SubY1 = FMath::Clamp<int32>(ComponentY1 - LandscapeInfo->SubsectionSizeQuads * SubIndexY, 0, LandscapeInfo->SubsectionSizeQuads);
-					int32 SubX2 = FMath::Clamp<int32>(ComponentX2 - LandscapeInfo->SubsectionSizeQuads * SubIndexX, 0, LandscapeInfo->SubsectionSizeQuads);
-					int32 SubY2 = FMath::Clamp<int32>(ComponentY2 - LandscapeInfo->SubsectionSizeQuads * SubIndexY, 0, LandscapeInfo->SubsectionSizeQuads);
+					int32 SubX1 = FMath::Clamp<int32>(ComponentX1 - SubsectionSizeQuads * SubIndexX, 0, SubsectionSizeQuads);
+					int32 SubY1 = FMath::Clamp<int32>(ComponentY1 - SubsectionSizeQuads * SubIndexY, 0, SubsectionSizeQuads);
+					int32 SubX2 = FMath::Clamp<int32>(ComponentX2 - SubsectionSizeQuads * SubIndexX, 0, SubsectionSizeQuads);
+					int32 SubY2 = FMath::Clamp<int32>(ComponentY2 - SubsectionSizeQuads * SubIndexY, 0, SubsectionSizeQuads);
 
 					// Update texture data for the box that lies inside subsection
 					for (int32 SubY = SubY1; SubY <= SubY2; SubY++)
 					{
 						for (int32 SubX = SubX1; SubX <= SubX2; SubX++)
 						{
-							int32 LandscapeX = SubIndexX * LandscapeInfo->SubsectionSizeQuads + ComponentIndexX * LandscapeInfo->ComponentSizeQuads + SubX;
-							int32 LandscapeY = SubIndexY * LandscapeInfo->SubsectionSizeQuads + ComponentIndexY * LandscapeInfo->ComponentSizeQuads + SubY;
+							int32 LandscapeX = SubIndexX * SubsectionSizeQuads + ComponentIndexX * ComponentSizeQuads + SubX;
+							int32 LandscapeY = SubIndexY * SubsectionSizeQuads + ComponentIndexY * ComponentSizeQuads + SubY;
 
 							// Find the texture data corresponding to this vertex
 							int32 SizeU = Heightmap->Source.GetSizeX();
@@ -733,8 +666,8 @@ void ATerrainTopologyManager::GetHeightDataTemplFast2(const int32 X1, const int3
 							int32 HeightmapOffsetX = Component->HeightmapScaleBias.Z * (float)SizeU;
 							int32 HeightmapOffsetY = Component->HeightmapScaleBias.W * (float)SizeV;
 
-							int32 TexX = HeightmapOffsetX + (LandscapeInfo->SubsectionSizeQuads + 1) * SubIndexX + SubX;
-							int32 TexY = HeightmapOffsetY + (LandscapeInfo->SubsectionSizeQuads + 1) * SubIndexY + SubY;
+							int32 TexX = HeightmapOffsetX + (SubsectionSizeQuads + 1) * SubIndexX + SubX;
+							int32 TexY = HeightmapOffsetY + (SubsectionSizeQuads + 1) * SubIndexY + SubY;
 							FColor& TexData = HeightmapTextureData[TexX + TexY * SizeU];
 
 							uint16 Height = (((uint16)TexData.R) << 8) | TexData.G;
@@ -751,7 +684,6 @@ void ATerrainTopologyManager::GetHeightDataTemplFast2(const int32 X1, const int3
 			UnlockMipData(Heightmap, 0);
 		}
 	}
-
 }
 
 ULandscapeInfo* ATerrainTopologyManager::CreateLandscapeInfo(bool bMapCheck)

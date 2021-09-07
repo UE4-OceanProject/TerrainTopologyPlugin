@@ -12,7 +12,7 @@
 UCLASS()
 class TERRAINTOPOLOGYPLUGIN_API ACreateFlowMap : public ATerrainTopologyManager
 {
-	GENERATED_BODY()
+	GENERATED_UCLASS_BODY()
 
 private:
 	static constexpr int LEFT = 0;
@@ -23,6 +23,7 @@ private:
 	static constexpr float TIME = 0.2f;
 
 public:
+	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
 	int m_iterations = 5;
 
 protected:

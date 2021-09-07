@@ -10,7 +10,7 @@ UCLASS()
 class TERRAINTOPOLOGYPLUGIN_API ACreateNormalMap : public ATerrainTopologyManager
 {
 
-	GENERATED_BODY()
+	GENERATED_UCLASS_BODY()
 
 protected:
 	void CreateMap() override;

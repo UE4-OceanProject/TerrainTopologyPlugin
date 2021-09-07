@@ -79,7 +79,7 @@ struct FLandscapeFileResolution
 UCLASS()
 class TERRAINTOPOLOGYPLUGIN_API ATerrainTopologyManager : public AActor
 {
-	GENERATED_BODY()
+	GENERATED_UCLASS_BODY()
 
 public:
 
@@ -106,11 +106,7 @@ public:
 protected:
 
 	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
-		float m_terrainWidth = 64;
-	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
-		float m_terrainHeight = 64;
-	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
-		float m_terrainLength = 64;
+		float m_terrainHeight = 65535;
 	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
 		int m_width = 0;
 	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
@@ -118,7 +114,7 @@ protected:
 	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
 		int m_size = 0;
 	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
-		float m_cellLength = 10;
+		float m_cellLength = 1;
 	//UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
 		TArray<float> m_heights;
 
@@ -142,6 +138,8 @@ private:
 	/// <returns></returns>
 protected:
 	virtual bool OnChange();
+
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
 	/// <summary>
 	/// Default mode is no smoothing.

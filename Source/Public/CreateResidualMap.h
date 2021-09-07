@@ -4,7 +4,7 @@
 //#include <vector>
 #include "CreateResidualMap.generated.h"
 
-
+UENUM()
 enum class RESIDUAL_TYPE
 {
 	ELEVATION,
@@ -21,9 +21,10 @@ enum class RESIDUAL_TYPE
 UCLASS()
 class TERRAINTOPOLOGYPLUGIN_API ACreateResidualMap : public ATerrainTopologyManager
 {
-	GENERATED_BODY()
+	GENERATED_UCLASS_BODY()
 
 public:
+	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
 	RESIDUAL_TYPE m_residualType = RESIDUAL_TYPE::PERCENTILE;
 
 private:

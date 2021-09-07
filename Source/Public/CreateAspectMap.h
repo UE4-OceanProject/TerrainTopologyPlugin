@@ -10,7 +10,7 @@
 UCLASS()
 class TERRAINTOPOLOGYPLUGIN_API ACreateAspectMap : public ATerrainTopologyManager
 {
-	GENERATED_BODY()
+	GENERATED_UCLASS_BODY()
 
 protected:
 	bool OnChange() override;

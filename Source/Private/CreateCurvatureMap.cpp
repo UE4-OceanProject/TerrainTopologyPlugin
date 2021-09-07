@@ -1,6 +1,11 @@
 ﻿#include "CreateCurvatureMap.h"
 #include "TMath.h"
 
+ACreateCurvatureMap::ACreateCurvatureMap(const class FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	m_coloredGradient = true;
+}
 
 bool ACreateCurvatureMap::OnChange()
 {
@@ -23,7 +28,6 @@ void ACreateCurvatureMap::CreateMap()
 
 	// Create base mip.
 	uint8* DestPtr = NULL;
-	const FLinearColor* SrcPtr = NULL;
 
 	for (int y = 0; y < m_height; y++)
 	{

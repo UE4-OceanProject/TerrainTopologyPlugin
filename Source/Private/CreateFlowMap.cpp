@@ -1,5 +1,10 @@
 ﻿#include "CreateFlowMap.h"
 
+ACreateFlowMap::ACreateFlowMap(const class FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	m_coloredGradient = false;
+}
 
 
 void ACreateFlowMap::CreateMap()
@@ -74,7 +79,6 @@ void ACreateFlowMap::CreateMap()
 
 	// Create base mip.
 	uint8* DestPtr = NULL;
-	//const FLinearColor* SrcPtr = NULL;
 
 	for (int y = 0; y < m_height; y++)
 	{

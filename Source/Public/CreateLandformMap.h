@@ -4,7 +4,7 @@
 //#include <stdexcept>
 #include "CreateLandformMap.generated.h"
 
-
+UENUM()
 enum class LANDFORM_TYPE
 {
 	GAUSSIAN,
@@ -18,10 +18,11 @@ enum class LANDFORM_TYPE
 UCLASS()
 class TERRAINTOPOLOGYPLUGIN_API ACreateLandformMap : public ATerrainTopologyManager
 {
-	GENERATED_BODY()
+	GENERATED_UCLASS_BODY()
 
 public:
-	LANDFORM_TYPE m_landformType = LANDFORM_TYPE::GAUSSIAN;
+	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
+	LANDFORM_TYPE m_landformType = LANDFORM_TYPE::SHAPE_INDEX;
 
 private:
 	LANDFORM_TYPE m_currentType = static_cast<LANDFORM_TYPE>(0);

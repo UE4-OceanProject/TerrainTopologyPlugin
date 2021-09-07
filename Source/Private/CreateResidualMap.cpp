@@ -1,6 +1,11 @@
 ﻿#include "CreateResidualMap.h"
 #include "TMath.h"
 
+ACreateResidualMap::ACreateResidualMap(const class FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	m_coloredGradient = true;
+}
 
 bool ACreateResidualMap::OnChange()
 {
@@ -18,7 +23,6 @@ void ACreateResidualMap::CreateMap()
 
 	// Create base mip.
 	uint8* DestPtr = NULL;
-	const FLinearColor* SrcPtr = NULL;
 
 	auto elevations = TArray<float>();
 

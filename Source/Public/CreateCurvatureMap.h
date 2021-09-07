@@ -3,7 +3,7 @@
 #include "TerrainTopologyManager.h"
 #include "CreateCurvatureMap.generated.h"
 
-
+UENUM()
 enum class CURVATURE_TYPE
 {
 	PLAN,
@@ -28,10 +28,11 @@ enum class CURVATURE_TYPE
 UCLASS()
 class TERRAINTOPOLOGYPLUGIN_API ACreateCurvatureMap : public ATerrainTopologyManager
 {
-	GENERATED_BODY()
+	GENERATED_UCLASS_BODY()
 
 public:
-	CURVATURE_TYPE m_curvatureType = CURVATURE_TYPE::HORIZONTAL;
+	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
+	CURVATURE_TYPE m_curvatureType = CURVATURE_TYPE::MAXIMAL;
 
 private:
 	CURVATURE_TYPE m_currentType = static_cast<CURVATURE_TYPE>(0);

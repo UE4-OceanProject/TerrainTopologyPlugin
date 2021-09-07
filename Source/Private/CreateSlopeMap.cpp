@@ -1,6 +1,11 @@
 ﻿#include "CreateSlopeMap.h"
 #include "TMath.h"
 
+ACreateSlopeMap::ACreateSlopeMap(const class FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	m_coloredGradient = false;
+}
 
 bool ACreateSlopeMap::OnChange()
 {
@@ -17,7 +22,6 @@ void ACreateSlopeMap::CreateMap()
 
 	// Create base mip.
 	uint8* DestPtr = NULL;
-	const FLinearColor* SrcPtr = NULL;
 
 	for (int y = 0; y < m_height; y++)
 	{

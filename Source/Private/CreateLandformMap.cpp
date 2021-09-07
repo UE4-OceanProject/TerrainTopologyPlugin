@@ -1,7 +1,11 @@
 ﻿#include "CreateLandformMap.h"
 #include "TMath.h"
 
-
+ACreateLandformMap::ACreateLandformMap(const class FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	m_coloredGradient = true;
+}
 
 bool ACreateLandformMap::OnChange()
 {
@@ -24,7 +28,6 @@ void ACreateLandformMap::CreateMap()
 
 	// Create base mip.
 	uint8* DestPtr = NULL;
-	const FLinearColor* SrcPtr = NULL;
 
 	for (int y = 0; y < m_height; y++)
 	{
