@@ -106,7 +106,7 @@ public:
 protected:
 
 	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
-		float m_terrainHeight = 65535;
+		float m_terrainHeight = 512;//Does NOT make sense to me, but ruins slope maps otherwise... Should be MAX UINT...like 65k.
 	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
 		int m_width = 0;
 	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
