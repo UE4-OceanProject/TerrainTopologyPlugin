@@ -4,37 +4,12 @@ ACreateFlowMap::ACreateFlowMap(const class FObjectInitializer& ObjectInitializer
 	: Super(ObjectInitializer)
 {
 	m_coloredGradient = false;
+	b_smoothHeights = false;
 }
 
 
 void ACreateFlowMap::CreateMap()
 {
-	////C# TO C++ CONVERTER NOTE: The following call to the 'RectangularVectors' helper class reproduces the rectangular array initialization that is automatic in C#:
-	////ORIGINAL LINE: float[,] waterMap = new float[m_width, m_height];
-	//std::vector<TArray<float>>& waterMap = RectangularVectors::RectangularFloatVector(m_width, m_height);
-	////C# TO C++ CONVERTER NOTE: The following call to the 'RectangularVectors' helper class reproduces the rectangular array initialization that is automatic in C#:
-	////ORIGINAL LINE: float[,,] outFlow = new float[m_width, m_height, 4];
-	//std::vector<std::vector<TArray<float>>&> outFlow = RectangularVectors::RectangularFloatVector(m_width, m_height, 4);
-
-	//FillWaterMap(0.0001f, waterMap, m_width, m_height);
-
-	//for (int i = 0; i < m_iterations; i++)
-	//{
-	//	ComputeOutflow(waterMap, outFlow, m_heights, m_width, m_height);
-	//	UpdateWaterMap(waterMap, outFlow, m_width, m_height);
-	//}
-
-	////C# TO C++ CONVERTER NOTE: The following call to the 'RectangularVectors' helper class reproduces the rectangular array initialization that is automatic in C#:
-	////ORIGINAL LINE: float[,] velocityMap = new float[m_width, m_height];
-	//std::vector<TArray<float>>& velocityMap = RectangularVectors::RectangularFloatVector(m_width, m_height);
-
-	//CalculateVelocityField(velocityMap, outFlow, m_width, m_height);
-	//NormalizeMap(velocityMap, m_width, m_height);
-
-	//UTexture2D* flowMap = CreateTexture(m_width, m_height);
-	// 
-	// 
-	//ORIGINAL LINE: float[,] waterMap = new float[m_width][m_height];
 	TArray<TArray<float>> waterMap;
 	waterMap.SetNum(m_width);
 	for (int x = 0; x < waterMap.Num();) {
@@ -73,18 +48,11 @@ void ACreateFlowMap::CreateMap()
 	NormalizeMap(velocityMap, m_width, m_height);
 
 	UTexture2D* flowMap = CreateTexture(m_width, m_height);
-
-
-	uint8* MipData = static_cast<uint8*>(flowMap->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_WRITE));
-
 	// Create base mip.
-	uint8* DestPtr = NULL;
+	uint8* DestPtr = static_cast<uint8*>(flowMap->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_WRITE));
 
 	for (int y = 0; y < m_height; y++)
 	{
-		DestPtr = &MipData[(m_height - 1 - y) * m_width * sizeof(FColor)];
-		//SrcPtr = const_cast<FLinearColor*>(&SrcData[(m_height - 1 - y) * m_width]);
-
 		for (int x = 0; x < m_width; x++)
 		{
 			float v = velocityMap[x][y];
@@ -101,7 +69,7 @@ void ACreateFlowMap::CreateMap()
 	flowMap->PlatformData->Mips[0].BulkData.Unlock();
 	flowMap->UpdateResource();
 	//flowMap->Apply();
-	m_material = flowMap;
+	t_output = flowMap;
 
 }
 

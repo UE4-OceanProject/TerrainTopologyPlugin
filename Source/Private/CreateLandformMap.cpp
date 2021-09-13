@@ -5,6 +5,11 @@ ACreateLandformMap::ACreateLandformMap(const class FObjectInitializer& ObjectIni
 	: Super(ObjectInitializer)
 {
 	m_coloredGradient = true;
+	/// <summary>
+/// Since landforms uses the second derivatives it can be sensitive to noise.
+/// For best results smooth the heights to reduce noise.
+/// </summary>
+	b_smoothHeights = true;
 }
 
 bool ACreateLandformMap::OnChange()
@@ -12,10 +17,6 @@ bool ACreateLandformMap::OnChange()
 	return m_currentType != m_landformType || m_currentColorMode != m_coloredGradient;
 }
 
-bool ACreateLandformMap::DoSmoothHeights()
-{
-	return true;
-}
 
 void ACreateLandformMap::CreateMap()
 {
@@ -23,17 +24,11 @@ void ACreateLandformMap::CreateMap()
 
 	UTexture2D* landformMap = CreateTexture(m_width, m_height);
 
-
-	uint8* MipData = static_cast<uint8*>(landformMap->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_WRITE));
-
 	// Create base mip.
-	uint8* DestPtr = NULL;
+	uint8* DestPtr = static_cast<uint8*>(landformMap->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_WRITE));
 
 	for (int y = 0; y < m_height; y++)
 	{
-		DestPtr = &MipData[(m_height - 1 - y) * m_width * sizeof(FColor)];
-		//SrcPtr = const_cast<FLinearColor*>(&SrcData[(m_height - 1 - y) * m_width]);
-
 		for (int x = 0; x < m_width; x++)
 		{
 			FVector2D* d1;
@@ -74,8 +69,7 @@ void ACreateLandformMap::CreateMap()
 	landformMap->PlatformData->Mips[0].BulkData.Unlock();
 	landformMap->UpdateResource();
 	//landformMap->Apply();
-	m_material = landformMap;
-
+	t_output = landformMap;
 }
 
 float ACreateLandformMap::GaussianLandform(float zx, float zy, float zxx, float zyy, float zxy)

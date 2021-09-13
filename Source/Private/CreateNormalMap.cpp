@@ -4,25 +4,18 @@ ACreateNormalMap::ACreateNormalMap(const class FObjectInitializer& ObjectInitial
 	: Super(ObjectInitializer)
 {
 	m_coloredGradient = false;
+	b_smoothHeights = false;
 }
 
 void ACreateNormalMap::CreateMap()
 {
-
-	//TArray<FLinearColor> Pixels;
-	//Pixels.SetNum(m_width * m_height);
 	UTexture2D* normalMap = CreateTexture(m_width, m_height);
 
-
-	uint8* MipData = static_cast<uint8*>(normalMap->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_WRITE));
-
 	// Create base mip.
-	uint8* DestPtr = NULL;
+	uint8* DestPtr = static_cast<uint8*>(normalMap->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_WRITE));
 
 	for (int y = 0; y < m_height; y++)
 	{
-		DestPtr = &MipData[(m_height - 1 - y) * m_width * sizeof(FColor)];
-		//SrcPtr = const_cast<FLinearColor*>(&SrcData[(m_height - 1 - y) * m_width]);
 		for (int x = 0; x < m_width; x++)
 		{
 			FVector2D* d1 = GetFirstDerivative(x, y);
@@ -40,16 +33,16 @@ void ACreateNormalMap::CreateMap()
 
 			//Pixels[x + y * m_width] = FLinearColor(n->X, n->Y , n->Z , 1 );
 			FColor UEColor = FLinearColor(n->X, n->Y, n->Z, 1).ToFColor(false);
-			*DestPtr++ = UEColor.B ;
-			*DestPtr++ = UEColor.G ;
-			*DestPtr++ = UEColor.R ;
+			*DestPtr++ = UEColor.B;
+			*DestPtr++ = UEColor.G;
+			*DestPtr++ = UEColor.R;
 			*DestPtr++ = UEColor.A;
 			delete n;
 		}
 
 	}
 
-	//SetTextureFromArray(m_material, Pixels);
+	//CreateRGBA8_TextureFromR8_Array(t_output, Pixels);
 
 	
 	normalMap->PlatformData->Mips[0].BulkData.Unlock();
@@ -57,7 +50,7 @@ void ACreateNormalMap::CreateMap()
 	//aspectMap->Apply();
 
 
-	//SetTextureFromArray(m_material, Pixels);
-	m_material = normalMap;
+	//CreateRGBA8_TextureFromR8_Array(t_output, Pixels);
+	t_output = normalMap;
 
 }

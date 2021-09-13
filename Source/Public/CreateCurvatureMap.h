@@ -40,12 +40,7 @@ private:
 protected:
 	bool OnChange() override;
 
-	/// <summary>
-	/// Since curvature uses the second derivatives it can be sensitive to noise.
-	/// For best results smooth the heights to reduce noise.
-	/// </summary>
-	/// <returns></returns>
-	bool DoSmoothHeights() override;
+
 
 	void CreateMap() override;
 

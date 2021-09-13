@@ -5,6 +5,7 @@ ACreateResidualMap::ACreateResidualMap(const class FObjectInitializer& ObjectIni
 	: Super(ObjectInitializer)
 {
 	m_coloredGradient = true;
+	b_smoothHeights = false;
 }
 
 bool ACreateResidualMap::OnChange()
@@ -18,19 +19,13 @@ void ACreateResidualMap::CreateMap()
 
 	UTexture2D* residualMap = CreateTexture(m_width, m_height);
 
-
-	uint8* MipData = static_cast<uint8*>(residualMap->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_WRITE));
-
 	// Create base mip.
-	uint8* DestPtr = NULL;
+	uint8* DestPtr = static_cast<uint8*>(residualMap->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_WRITE));
 
 	auto elevations = TArray<float>();
 
 	for (int y = 0; y < m_height; y++)
 	{
-		DestPtr = &MipData[(m_height - 1 - y) * m_width * sizeof(FColor)];
-		//SrcPtr = const_cast<FLinearColor*>(&SrcData[(m_height - 1 - y) * m_width]);
-
 		for (int x = 0; x < m_width; x++)
 		{
 			elevations.Empty();
@@ -46,18 +41,19 @@ void ACreateResidualMap::CreateMap()
 					{
 						continue;
 					}
+
 					if (yj < 0 || yj >= m_height)
 					{
 						continue;
 					}
 
-					float h = GetNormalizedHeight(xi, yj);
+					float h = GetNormalizedHeight(xi, yj, m_heights);
 					elevations.Add(h);
 				}
 			}
 
 			float residual = 0;
-			float h0 = GetNormalizedHeight(x, y);
+			float h0 = GetNormalizedHeight(x, y, m_heights);
 			FLinearColor color = FLinearColor::White;
 
 			switch (m_residualType)
@@ -106,8 +102,7 @@ void ACreateResidualMap::CreateMap()
 	residualMap->PlatformData->Mips[0].BulkData.Unlock();
 	residualMap->UpdateResource();
 	//residualMap->Apply();
-	m_material = residualMap;
-
+	t_output = residualMap;
 }
 
 float ACreateResidualMap::MeanElevation(TArray<float>& elevations)
@@ -151,6 +146,7 @@ float ACreateResidualMap::Percentile(float h, TArray<float>& elevations)
 	{
 		return 0;
 	}
+
 	return num / count;
 }
 

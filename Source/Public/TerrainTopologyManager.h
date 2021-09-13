@@ -89,10 +89,41 @@ public:
 
 public:
 	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
-		UTexture2D* m_material;
+		UTexture2D* t_output;
+	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
+		UTexture2D* t_output_unsmoothed;
+
+	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
+		UTexture2D* t_output_smoothed;
+
+	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
+		UTexture2D* t_heightmap;
+
+	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
+		UTexture2D* t_heightmap_smoothed;
+
+	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
+		UTexture2D* t_debug;
 
 	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
 		bool m_coloredGradient = false;
+
+	/// <summary>
+/// Default mode is no smoothing.
+/// </summary>
+	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
+		bool b_smoothHeights = false;
+
+	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
+		int smoothHeightsCount = 1;
+
+	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
+		bool b_smoothOutput = false;
+
+	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
+		int smoothOutputCount = 1;
+
+
 
 	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
 		ALandscape* Landscape;
@@ -116,7 +147,7 @@ protected:
 	UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
 		float m_cellLength = 1;
 	//UPROPERTY(Category = "Topology", BlueprintReadWrite, EditAnywhere)
-		TArray<float> m_heights;
+	TArray<float> m_heights;
 
 private:
 	TArray<FColor> m_posGradient, m_negGradient, m_gradient;
@@ -141,11 +172,6 @@ protected:
 
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
-	/// <summary>
-	/// Default mode is no smoothing.
-	/// </summary>
-	/// <returns></returns>
-	virtual bool DoSmoothHeights();
 
 	/// <summary>
 	/// Create the map. Update to derivered class to implement.
@@ -165,7 +191,7 @@ protected:
 	/// <param name="x"></param>
 	/// <param name="y"></param>
 	/// <returns></returns>
-	float GetNormalizedHeight(int x, int y);
+	float GetNormalizedHeight(int x, int y, TArray<float>& map);
 
 	/// <summary>
 	/// Get a hight value ranging from 0 - actaul height in meters.
@@ -194,9 +220,9 @@ protected:
 	void GetDerivatives(int x, int y, FVector2D*& d1, FVector*& d2);
 
 	/// <summary>
-	/// Smooth heights using a 5X5 Gaussian kernel.
+	/// Smooth using a 5X5 Gaussian kernel.
 	/// </summary>
-	void SmoothHeightMap();
+	void SmoothMap(TArray<float>& map, int loopCount);
 
 	FLinearColor GetPixel(TArray<FLinearColor> tex, int x, int y, int Width, int Height);
 
@@ -218,7 +244,7 @@ protected:
 	FLinearColor Colorize(float v, float exponent, bool nonNegative);
 
 	UTexture2D* CreateTexture(const int32 SrcWidth, const int32 SrcHeight);
-	void SetTextureFromArray(UTexture2D*, TArray<FLinearColor>);
+	UTexture2D* CreateRGBA8_TextureFromR8_Array(TArray<float>&);
 
 	UTexture2D* TextureFromRAW(const int32 SrcWidth, const int32 SrcHeight, const TArray<FLinearColor>& SrcData,
 		const bool UseAlpha, enum TextureFilter sampleMode);
@@ -281,7 +307,7 @@ public:
 	ULandscapeInfo* CreateLandscapeInfo(bool bMapCheck);
 
 
-// Without data interpolation, able to get normal data
+	// Without data interpolation, able to get normal data
 	template<typename TStoreData>
 	void GetHeightDataTemplFast(const int32 X1, const int32 Y1, const int32 X2, const int32 Y2, TStoreData& StoreData, UTexture2D* InHeightmap = nullptr, TStoreData* NormalData = NULL);
 

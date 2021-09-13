@@ -5,6 +5,11 @@ ACreateCurvatureMap::ACreateCurvatureMap(const class FObjectInitializer& ObjectI
 	: Super(ObjectInitializer)
 {
 	m_coloredGradient = true;
+	/// <summary>
+/// Since curvature uses the second derivatives it can be sensitive to noise.
+/// For best results smooth the heights to reduce noise.
+/// </summary>
+	b_smoothHeights = true;
 }
 
 bool ACreateCurvatureMap::OnChange()
@@ -12,10 +17,6 @@ bool ACreateCurvatureMap::OnChange()
 	return m_currentType != m_curvatureType || m_currentColorMode != m_coloredGradient;
 }
 
-bool ACreateCurvatureMap::DoSmoothHeights()
-{
-	return true;
-}
 
 void ACreateCurvatureMap::CreateMap()
 {
@@ -23,17 +24,11 @@ void ACreateCurvatureMap::CreateMap()
 
 	UTexture2D* curveMap = CreateTexture(m_width, m_height);
 
-
-	uint8* MipData = static_cast<uint8*>(curveMap->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_WRITE));
-
 	// Create base mip.
-	uint8* DestPtr = NULL;
+	uint8* DestPtr = static_cast<uint8*>(curveMap->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_WRITE));
 
 	for (int y = 0; y < m_height; y++)
 	{
-		DestPtr = &MipData[(m_height - 1 - y) * m_width * sizeof(FColor)];
-		//SrcPtr = const_cast<FLinearColor*>(&SrcData[(m_height - 1 - y) * m_width]);
-
 		for (int x = 0; x < m_width; x++)
 		{
 			FVector2D* d1;
@@ -133,8 +128,7 @@ void ACreateCurvatureMap::CreateMap()
 	curveMap->PlatformData->Mips[0].BulkData.Unlock();
 	curveMap->UpdateResource();
 	//curveMap->Apply();
-	m_material = curveMap;
-
+	t_output = curveMap;
 }
 
 float ACreateCurvatureMap::PlanCurvature(float zx, float zy, float zxx, float zyy, float zxy)
